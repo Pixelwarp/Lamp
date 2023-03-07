@@ -1,0 +1,4 @@
+name: lamp-examples
+version: '${version}'
+main: org.example.ExamplePlugin
+api-version: 1.13
