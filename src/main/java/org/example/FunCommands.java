@@ -45,7 +45,7 @@ public class FunCommands {
             @Range(min = 1, max = 100) int amount,
 
             // If no player is specified, default to the sender
-            @Optional(def = "me") Player target
+            @Default("me") Player target
     ) {
         Location location = target.getLocation();
         location.add(0, 3, 0);
