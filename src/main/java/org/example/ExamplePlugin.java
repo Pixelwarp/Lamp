@@ -15,6 +15,8 @@ public final class ExamplePlugin extends JavaPlugin {
         // Example commands that describe the use of some annotations
         commandHandler.register(new FunCommands());
 
+        // Register it to Minecraft's 1.13+ colored command system,
+        // so we get colorful command completions!
         commandHandler.registerBrigadier();
     }
 
