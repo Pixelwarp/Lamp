@@ -14,12 +14,20 @@ repositories {
     maven { url = "https://jitpack.io" }
     maven { url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
     maven { url = "https://oss.sonatype.org/content/groups/public/" }
+    maven { url = "https://libraries.minecraft.net" }
 }
 
 dependencies {
     compileOnly("org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT")
+
     implementation("com.github.Revxrsal.Lamp:common:3.1.4")
     implementation("com.github.Revxrsal.Lamp:bukkit:3.1.4")
+
+    // Optional: for using brigadier
+    compileOnly("com.mojang:brigadier:1.0.18")
+
+    // Optional: for using adventure
+    compileOnly("net.kyori:adventure-platform-bukkit:4.1.2")
 }
 
 compileJava { // Preserve parameter names in command usage
@@ -36,3 +44,5 @@ processResources {
         expand props
     }
 }
+
+tasks.build.dependsOn(tasks.shadowJar)

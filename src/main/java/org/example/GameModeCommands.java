@@ -68,7 +68,7 @@ public class GameModeCommands {
         }
     }
 
-    @Command({"gms", "gamemode spectator"})
+    @Command({"gmsp", "gamemode spectator"})
     public void spectator(CommandSender sender) {
         // We can also use Bukkit's CommandSender. However, we have
         // to manually check if it is a player or not.
