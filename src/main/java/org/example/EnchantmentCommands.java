@@ -57,6 +57,7 @@ public class EnchantmentCommands {
             } catch (IllegalArgumentException e) {
                 // Enchant is inapplicable to the item, level is out of bounds, etc.
                 actor.error(e.getMessage());
+                return;
             }
         }
         actor.reply("&aSucessfully enchanted.");
