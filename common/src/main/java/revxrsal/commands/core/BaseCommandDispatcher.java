@@ -39,6 +39,7 @@ import revxrsal.commands.process.ParameterResolver.ParameterResolverContext;
 import revxrsal.commands.process.ParameterValidator;
 import revxrsal.commands.process.ValueResolver.ValueResolverContext;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
@@ -55,18 +56,24 @@ public final class BaseCommandDispatcher {
     public Object eval(@NotNull CommandActor actor, @NotNull ArgumentStack arguments) {
         try {
             MutableCommandPath path = MutableCommandPath.empty();
+            List<String> dynamicValues = new ArrayList<>();
+            List<String> immutableCopy = arguments.asImmutableCopy();
             String argument = arguments.getFirst();
             path.add(argument);
             CommandExecutable executable = handler.executables.get(path);
             if (executable != null) {
+                executable.path.dynamicPaths.forEach((index, paramName) -> {
+                    arguments.remove((int) index);
+                    dynamicValues.add(arguments.get(index));
+                });
                 arguments.removeFirst();
-                return execute(executable, actor, arguments);
+                return execute(executable, actor, arguments, dynamicValues);
             }
 
             BaseCommandCategory category = handler.categories.get(path);
             if (category != null) {
                 arguments.removeFirst();
-                return searchCategory(actor, category, path, arguments);
+                return searchCategory(actor, category, path, arguments, immutableCopy, dynamicValues);
             } else {
                 throw new InvalidCommandException(path, path.getFirst());
             }
@@ -76,14 +83,20 @@ public final class BaseCommandDispatcher {
         return null;
     }
 
-    private Object searchCategory(CommandActor actor, BaseCommandCategory category, MutableCommandPath path, ArgumentStack arguments) {
+    private Object searchCategory(CommandActor actor,
+                                  BaseCommandCategory category,
+                                  MutableCommandPath path,
+                                  ArgumentStack arguments,
+                                  List<String> immutableCopy,
+                                  List<String> dynamicValues) {
         if (!arguments.isEmpty()) {
             path.add(arguments.getFirst());
         }
         CommandExecutable executable = (CommandExecutable) category.commands.get(path);
         if (executable != null) {
+            executable.path.dynamicPaths.forEach((index, paramName) -> dynamicValues.add(immutableCopy.get(index)));
             arguments.removeFirst();
-            return execute(executable, actor, arguments);
+            return execute(executable, actor, arguments, dynamicValues);
         }
         category.checkPermission(actor);
         BaseCommandCategory found = (BaseCommandCategory) category.getCategories().get(path);
@@ -91,19 +104,27 @@ public final class BaseCommandDispatcher {
             if (category.defaultAction == null)
                 throw new NoSubcommandSpecifiedException(category);
             else {
-                return execute(category.defaultAction, actor, arguments);
+                return execute(category.defaultAction, actor, arguments, dynamicValues);
             }
         } else {
+//            category.path.dynamicPaths.forEach((index, paramName) -> dynamicValues.add(immutableCopy.get(index)));
             arguments.removeFirst();
-            return searchCategory(actor, found, path, arguments);
+            return searchCategory(actor, found, path, arguments, immutableCopy, dynamicValues);
         }
     }
 
     private Object execute(@NotNull CommandExecutable executable,
                            @NotNull CommandActor actor,
-                           @NotNull ArgumentStack args) {
+                           @NotNull ArgumentStack args,
+                           @NotNull List<String> dynamicValues) {
         List<String> input = args.asImmutableCopy();
         handler.conditions.forEach(condition -> condition.test(actor, executable, args.asImmutableView()));
+        if (executable.path.containsDynamicPaths()) {
+            for (int i = 0; i < dynamicValues.size(); i++) {
+                String value = dynamicValues.get(i);
+                args.add(i, value);
+            }
+        }
         Object[] methodArguments = getMethodArguments(executable, actor, args, input);
         if (!args.isEmpty() && handler.failOnExtra) {
             throw new TooManyArgumentsException(executable, args);

@@ -33,7 +33,6 @@ import revxrsal.commands.command.CommandPermission;
 import revxrsal.commands.command.ExecutableCommand;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 final class BaseCommandCategory implements CommandCategory {
@@ -45,8 +44,8 @@ final class BaseCommandCategory implements CommandCategory {
     @Nullable CommandExecutable defaultAction;
     CommandHandler handler;
 
-    final Map<CommandPath, ExecutableCommand> commands = new HashMap<>();
-    final Map<CommandPath, BaseCommandCategory> categories = new HashMap<>();
+    final Map<CommandPath, ExecutableCommand> commands = new CommandLookup<>();
+    final Map<CommandPath, BaseCommandCategory> categories = new CommandLookup<>();
     final CommandPermission permission = new CategoryPermission();
 
     @Override public @NotNull String getName() {

@@ -82,8 +82,9 @@ import static revxrsal.commands.util.Strings.splitBySpace;
 @ApiStatus.Internal
 public abstract class BaseCommandHandler implements CommandHandler {
 
-    protected final Map<CommandPath, CommandExecutable> executables = new HashMap<>();
-    protected final Map<CommandPath, BaseCommandCategory> categories = new HashMap<>();
+    protected final Map<CommandPath, CommandExecutable> executables = new CommandLookup<>();
+    protected final Map<CommandPath, BaseCommandCategory> categories = new CommandLookup<>();
+
     private final BaseCommandDispatcher dispatcher = new BaseCommandDispatcher(this);
 
     final List<ResolverFactory> factories = new ArrayList<>();
@@ -241,8 +242,9 @@ public abstract class BaseCommandHandler implements CommandHandler {
         return this;
     }
 
-    @Override public @NotNull <T extends Throwable> CommandHandler registerExceptionHandler(@NotNull Class<T> exceptionType,
-                                                                                            @NotNull BiConsumer<CommandActor, T> handler) {
+    @Override
+    public @NotNull <T extends Throwable> CommandHandler registerExceptionHandler(@NotNull Class<T> exceptionType,
+                                                                                  @NotNull BiConsumer<CommandActor, T> handler) {
         notNull(exceptionType, "exception type");
         notNull(handler, "exception handler");
         exceptionHandler.exceptionsHandlers.add(exceptionType, (BiConsumer<CommandActor, Throwable>) handler);
@@ -297,7 +299,8 @@ public abstract class BaseCommandHandler implements CommandHandler {
         return this;
     }
 
-    @Override public <T> @NotNull CommandHandler registerValueResolver(@NotNull Class<T> type, @NotNull ValueResolver<T> resolver) {
+    @Override
+    public <T> @NotNull CommandHandler registerValueResolver(@NotNull Class<T> type, @NotNull ValueResolver<T> resolver) {
         notNull(type, "type");
         notNull(resolver, "resolver");
         if (type.isPrimitive())
@@ -306,7 +309,8 @@ public abstract class BaseCommandHandler implements CommandHandler {
         return this;
     }
 
-    @Override public @NotNull <T> CommandHandler registerValueResolver(int priority, @NotNull Class<T> type, @NotNull ValueResolver<T> resolver) {
+    @Override
+    public @NotNull <T> CommandHandler registerValueResolver(int priority, @NotNull Class<T> type, @NotNull ValueResolver<T> resolver) {
         notNull(type, "type");
         notNull(resolver, "resolver");
         if (type.isPrimitive())
@@ -315,7 +319,8 @@ public abstract class BaseCommandHandler implements CommandHandler {
         return this;
     }
 
-    @Override public <T> @NotNull CommandHandler registerContextResolver(@NotNull Class<T> type, @NotNull ContextResolver<T> resolver) {
+    @Override
+    public <T> @NotNull CommandHandler registerContextResolver(@NotNull Class<T> type, @NotNull ContextResolver<T> resolver) {
         notNull(type, "type");
         notNull(resolver, "resolver");
         if (type.isPrimitive())
@@ -324,7 +329,8 @@ public abstract class BaseCommandHandler implements CommandHandler {
         return this;
     }
 
-    @Override public @NotNull <T> CommandHandler registerContextResolver(int priority, @NotNull Class<T> type, @NotNull ContextResolver<T> resolver) {
+    @Override
+    public @NotNull <T> CommandHandler registerContextResolver(int priority, @NotNull Class<T> type, @NotNull ContextResolver<T> resolver) {
         notNull(type, "type");
         notNull(resolver, "resolver");
         if (type.isPrimitive())
@@ -337,7 +343,8 @@ public abstract class BaseCommandHandler implements CommandHandler {
         return registerContextResolver(type, ContextResolver.of(value));
     }
 
-    @Override public @NotNull <T> CommandHandler registerContextValue(int priority, @NotNull Class<T> type, @NotNull T value) {
+    @Override
+    public @NotNull <T> CommandHandler registerContextValue(int priority, @NotNull Class<T> type, @NotNull T value) {
         return registerContextResolver(priority, type, ContextResolver.of(value));
     }
 
@@ -347,7 +354,8 @@ public abstract class BaseCommandHandler implements CommandHandler {
         return this;
     }
 
-    @Override public @NotNull CommandHandler registerValueResolverFactory(int priority, @NotNull ValueResolverFactory factory) {
+    @Override
+    public @NotNull CommandHandler registerValueResolverFactory(int priority, @NotNull ValueResolverFactory factory) {
         notNull(factory, "value resolver factory");
         factories.add(coerceIn(priority, 0, factories.size()), new ResolverFactory(factory));
         return this;
@@ -359,7 +367,8 @@ public abstract class BaseCommandHandler implements CommandHandler {
         return this;
     }
 
-    @Override public @NotNull CommandHandler registerContextResolverFactory(int priority, @NotNull ContextResolverFactory factory) {
+    @Override
+    public @NotNull CommandHandler registerContextResolverFactory(int priority, @NotNull ContextResolverFactory factory) {
         notNull(factory, "context resolver factory");
         factories.add(coerceIn(priority, 0, factories.size()), new ResolverFactory(factory));
         return this;
@@ -371,7 +380,8 @@ public abstract class BaseCommandHandler implements CommandHandler {
         return this;
     }
 
-    @Override public @NotNull <T> CommandHandler registerDependency(@NotNull Class<T> type, @NotNull Supplier<T> supplier) {
+    @Override
+    public @NotNull <T> CommandHandler registerDependency(@NotNull Class<T> type, @NotNull Supplier<T> supplier) {
         notNull(type, "type");
         notNull(supplier, "supplier");
         dependencies.add(type, supplier);
@@ -384,21 +394,24 @@ public abstract class BaseCommandHandler implements CommandHandler {
         return this;
     }
 
-    @Override public @NotNull <T> CommandHandler registerParameterValidator(@NotNull Class<T> type, @NotNull ParameterValidator<T> validator) {
+    @Override
+    public @NotNull <T> CommandHandler registerParameterValidator(@NotNull Class<T> type, @NotNull ParameterValidator<T> validator) {
         notNull(type, "type");
         notNull(validator, "validator");
         validators.computeIfAbsent(Primitives.wrap(type), t -> new ArrayList<>()).add((ParameterValidator<Object>) validator);
         return this;
     }
 
-    @Override public @NotNull <T> CommandHandler registerResponseHandler(@NotNull Class<T> responseType, @NotNull ResponseHandler<T> handler) {
+    @Override
+    public @NotNull <T> CommandHandler registerResponseHandler(@NotNull Class<T> responseType, @NotNull ResponseHandler<T> handler) {
         notNull(responseType, "response type");
         notNull(handler, "response handler");
         responseHandlers.add(responseType, handler);
         return this;
     }
 
-    @Override public @NotNull <T extends Annotation> CommandHandler registerAnnotationReplacer(@NotNull Class<T> annotationType, @NotNull AnnotationReplacer<T> replacer) {
+    @Override
+    public @NotNull <T extends Annotation> CommandHandler registerAnnotationReplacer(@NotNull Class<T> annotationType, @NotNull AnnotationReplacer<T> replacer) {
         notNull(annotationType, "annotation type");
         notNull(replacer, "annotation replacer");
         annotationReplacers.computeIfAbsent(annotationType, e -> new HashSet<>()).add(replacer);
@@ -536,11 +549,13 @@ public abstract class BaseCommandHandler implements CommandHandler {
         return messagePrefix;
     }
 
-    @Override public <T> @NotNull Optional<@Nullable T> dispatch(@NotNull CommandActor actor, @NotNull ArgumentStack arguments) {
+    @Override
+    public <T> @NotNull Optional<@Nullable T> dispatch(@NotNull CommandActor actor, @NotNull ArgumentStack arguments) {
         return (Optional<T>) Optional.ofNullable(dispatcher.eval(actor, arguments));
     }
 
-    @Override public <T> @NotNull Optional<@Nullable T> dispatch(@NotNull CommandActor actor, @NotNull String commandInput) {
+    @Override
+    public <T> @NotNull Optional<@Nullable T> dispatch(@NotNull CommandActor actor, @NotNull String commandInput) {
         try {
             return dispatch(actor, ArgumentStack.parse(commandInput));
         } catch (Throwable t) {

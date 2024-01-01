@@ -25,12 +25,10 @@ package revxrsal.commands.core;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.UnmodifiableView;
 import revxrsal.commands.util.Preconditions;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Objects;
+import java.util.*;
 
 import static revxrsal.commands.util.Collections.linkedListOf;
 import static revxrsal.commands.util.Strings.splitBySpace;
@@ -83,6 +81,11 @@ public class CommandPath implements Iterable<String>, Comparable<CommandPath> {
     protected final LinkedList<String> path;
 
     /**
+     * Represents the actual path of this command
+     */
+    protected final Map<Integer, String> dynamicPaths = new HashMap<>();
+
+    /**
      * Instantiates a path with the specified array.
      *
      * @param path Path to use.
@@ -90,6 +93,8 @@ public class CommandPath implements Iterable<String>, Comparable<CommandPath> {
     CommandPath(String[] path) {
         for (int i = 0; i < path.length; i++) {
             String s = path[i];
+            if (isEnclosed(s))
+                dynamicPaths.put(i, unwrap(s));
             path[i] = s.toLowerCase();
         }
         this.path = linkedListOf(path);
@@ -250,12 +255,37 @@ public class CommandPath implements Iterable<String>, Comparable<CommandPath> {
         return other.isChildOf(this);
     }
 
-    @Override
-    public boolean equals(Object o) {
+    /**
+     * Returns whether this path contains any dynamic values (i.e.
+     * not literal paths)
+     *
+     * @return If this contains non-literal paths
+     */
+    public boolean containsDynamicPaths() {
+        return !dynamicPaths.isEmpty();
+    }
+
+    /**
+     * Returns all the dynamic paths inside this command path
+     *
+     * @return Any dynamic paths in this path
+     */
+    public @NotNull @UnmodifiableView Map<Integer, String> getDynamicPaths() {
+        return unmodifiableDynamicPaths;
+    }
+
+    @Override public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof CommandPath)) return false;
         CommandPath that = (CommandPath) o;
-        return Objects.equals(path, that.path);
+        if (path.size() != that.path.size()) return false;
+        for (int i = 0; i < path.size(); i++) {
+            if (dynamicPaths.containsKey(i) || that.dynamicPaths.containsKey(i))
+                continue;
+            if (!path.get(i).equals(that.path.get(i)))
+                return false;
+        }
+        return true;
     }
 
     @Override
@@ -314,4 +344,14 @@ public class CommandPath implements Iterable<String>, Comparable<CommandPath> {
         else
             return toRealString().compareTo(o.toRealString());
     }
+
+    private static boolean isEnclosed(String value) {
+        return !value.isEmpty() && value.charAt(0) == '<' && value.charAt(value.length() - 1) == '>';
+    }
+
+    private static String unwrap(String value) {
+        return value.substring(1, value.length() - 1);
+    }
+
+    private final Map<Integer, String> unmodifiableDynamicPaths = Collections.unmodifiableMap(dynamicPaths);
 }

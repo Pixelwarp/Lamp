@@ -30,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public final class Collections {
 
@@ -122,5 +123,21 @@ public final class Collections {
         newArr[0] = item;
         System.arraycopy(original, 0, newArr, 1, original.length);
         return newArr;
+    }
+
+    /**
+     * Returns the first element in the iterable collection that matches the
+     * given predicate. If no such element is found, an error is thrown.
+     *
+     * @param iterable  Iterable to query
+     * @param predicate Predicate to test against
+     * @param <T>       The collection type
+     * @return The first item that matches the given predicate
+     */
+    public static <T> @NotNull T first(@NotNull Iterable<T> iterable, @NotNull Predicate<T> predicate) {
+        for (T t : iterable)
+            if (predicate.test(t))
+                return t;
+        throw new IllegalArgumentException("No matching item.");
     }
 }

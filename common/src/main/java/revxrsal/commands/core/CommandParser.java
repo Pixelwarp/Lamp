@@ -60,6 +60,7 @@ import static java.util.Arrays.stream;
 import static java.util.Collections.addAll;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toMap;
+import static revxrsal.commands.util.Collections.first;
 import static revxrsal.commands.util.Collections.listOf;
 import static revxrsal.commands.util.Strings.getOverriddenName;
 import static revxrsal.commands.util.Strings.splitBySpace;
@@ -198,6 +199,12 @@ final class CommandParser {
                     executable.resolveableParameters = executable.parameters.stream()
                             .filter(c -> c.getCommandIndex() != -1)
                             .collect(toMap(CommandParameter::getCommandIndex, c -> c));
+                    executable.pathParameters = executable.path.dynamicPaths.values()
+                            .stream()
+                            .map(c -> first(executable.parameters, param -> param.getName().equals(c)))
+                            .filter(c -> c.getCommandIndex() != -1)
+                            .collect(toMap(CommandParameter::getCommandIndex, c -> c));
+
                     executable.usage = reader.get(Usage.class, Usage::value, () -> generateUsage(executable));
                     if (!registerAsDefault) {
                         putOrError(handler.executables, p, executable, "A command with path '" + p.toRealString() + "' already exists!");

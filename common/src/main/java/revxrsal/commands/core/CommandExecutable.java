@@ -60,6 +60,7 @@ class CommandExecutable implements ExecutableCommand {
     private CommandPermission permission = CommandPermission.ALWAYS_TRUE;
     @Unmodifiable List<CommandParameter> parameters;
     @Unmodifiable Map<Integer, CommandParameter> resolveableParameters;
+    @Unmodifiable Map<Integer, CommandParameter> pathParameters;
 
     @Override
     public @NotNull String getName() {

@@ -42,12 +42,12 @@ public final class Preconditions {
     }
 
     public static <T> void notEmpty(Collection<T> collection, String err) {
-        if (collection.size() == 0)
+        if (collection.isEmpty())
             throw new IllegalStateException(err);
     }
 
     public static <T> void notEmpty(String s, String err) {
-        if (s.length() == 0)
+        if (s.isEmpty())
             throw new IllegalStateException(err);
     }
 
